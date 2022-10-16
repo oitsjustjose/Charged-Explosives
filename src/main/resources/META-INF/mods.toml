@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[43,)"
+license="GNU GPLv3"
+
+[[mods]]
+modId="charged_explosives"
+version="${file.jarVersion}"
+displayName="Charged Explosives"
+displayURL="https://github.com/oitsjustjose/Charged-Explosives"
+credits="Rorax for the assets!"
+authors="oitsjustjose"
+description='''A small mod adding in configurable charged explosives'''
+
+[[dependencies.charged_explosives]]
+    modId="forge"
+    mandatory=true
+    versionRange="[43,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.charged_explosives]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.19,)"
+    ordering="NONE"
+    side="BOTH"
