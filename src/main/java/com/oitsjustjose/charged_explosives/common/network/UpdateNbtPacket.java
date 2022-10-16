@@ -32,11 +32,7 @@ public class UpdateNbtPacket {
         buf.writeItem(pkt.stack);
     }
 
-    public void handleClient(Supplier<NetworkEvent.Context> ctx) {
-        ctx.get().setPacketHandled(true);
-    }
-
-    public static void handleServer(UpdateNbtPacket pkt, Supplier<NetworkEvent.Context> ctx) {
+    public static void handle(UpdateNbtPacket pkt, Supplier<NetworkEvent.Context> ctx) {
         if (ctx.get().getDirection().getReceptionSide() == LogicalSide.SERVER) {
             ctx.get().enqueueWork(() -> {
                 if (!pkt.stack.hasTag()) {
@@ -50,7 +46,7 @@ public class UpdateNbtPacket {
                     return x.hasTag()
                             && x.getTag() != null
                             && x.getTag().contains("explosive_id")
-                            && x.getTag().getUUID("explosive_id") == newTag.getUUID("explosive_id");
+                            && x.getTag().getUUID("explosive_id").equals(newTag.getUUID("explosive_id"));
                 }).findFirst();
 
                 if (stack.isPresent()) {

@@ -25,6 +25,7 @@ public class ChargedExplosives {
         instance = this;
         REGISTRY.BlockRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
         REGISTRY.ItemRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
+        REGISTRY.BlockEntityTypeRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
         MinecraftForge.EVENT_BUS.register(this);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
     }
