@@ -1,6 +1,11 @@
 {
-    "charged_explosives.explosion.configuration.title": "Configure Blast",
-    "charged_explosives.explosion.width.title": "Explosion Width:",
-    "charged_explosives.explosion.height.title": "Explosion Height:",
-    "charged_explosives.explosion.depth.title": "Explosion Depth:"
+  "charged_explosives.explosion.configuration.title": "Configure Blast Radius",
+  "charged_explosives.explosion.width.title": "Explosion Width:",
+  "charged_explosives.explosion.height.title": "Explosion Height:",
+  "charged_explosives.explosion.depth.title": "Explosion Depth:",
+  "charged_explosives.not_yet_initialized": "§8Unconfigured§r",
+  "charged_explosives.width_tooltip": "  §8Width: §8%s§r",
+  "charged_explosives.depth_tooltip": "  §8Depth: §8%s§r",
+  "charged_explosives.height_tooltip": "  §8Height: §8%s§r",
+  "block.charged_explosives.charged_explosive": "Explosive Charge"
 }

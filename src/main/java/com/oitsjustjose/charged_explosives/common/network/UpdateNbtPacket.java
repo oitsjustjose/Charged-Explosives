@@ -2,12 +2,15 @@ package com.oitsjustjose.charged_explosives.common.network;
 
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
+import com.oitsjustjose.charged_explosives.common.items.ChargedExplosiveItem;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -41,20 +44,15 @@ public class UpdateNbtPacket {
                 }
 
                 CompoundTag newTag = Objects.requireNonNull(pkt.stack.getTag());
-                // Search for the item to update
-                Optional<ItemStack> stack = Objects.requireNonNull(ctx.get().getSender()).getInventory().items.stream().filter(x -> {
-                    return x.hasTag()
-                            && x.getTag() != null
-                            && x.getTag().contains("explosive_id")
-                            && x.getTag().getUUID("explosive_id").equals(newTag.getUUID("explosive_id"));
-                }).findFirst();
+                ItemStack main = Objects.requireNonNull(ctx.get().getSender()).getMainHandItem();
+                ItemStack off = Objects.requireNonNull(ctx.get().getSender()).getOffhandItem();
 
-                if (stack.isPresent()) {
-                    // We know there's a tag present because we used it earlier in the filter()
-                    CompoundTag tag = Objects.requireNonNull(stack.get().getTag());
-                    tag.putInt("explosionWidth", newTag.getInt("explosionWidth"));
-                    tag.putInt("explosionDepth", newTag.getInt("explosionDepth"));
-                    tag.putInt("explosionHeight", newTag.getInt("explosionHeight"));
+                if (off.getItem() instanceof ChargedExplosiveItem) {
+                    off.setTag(newTag);
+                } else if (main.getItem() instanceof ChargedExplosiveItem) {
+                    main.setTag(newTag);
+                } else {
+                    ChargedExplosives.getInstance().LOGGER.warn("ItemStack in players main and off hands are NOT charged explosives...");
                 }
             });
             ctx.get().setPacketHandled(true);

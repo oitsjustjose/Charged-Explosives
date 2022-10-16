@@ -3,6 +3,7 @@ package com.oitsjustjose.charged_explosives.common.tile;
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -28,5 +29,23 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
         this.explosionDepth = tag.getInt("explosionDepth");
     }
 
+    @Override
+    public void saveToItem(ItemStack stack) {
+        CompoundTag tag = stack.getOrCreateTag();
+        tag.putInt("explosionWidth", explosionWidth);
+        tag.putInt("explosionHeight", explosionHeight);
+        tag.putInt("explosionDepth", explosionDepth);
+        super.saveToItem(stack);
+    }
 
+    public int getExplosionWidth() {
+        return explosionWidth;
+    }
+    public int getExplosionDepth() {
+        return explosionDepth;
+    }
+
+    public int getExplosionHeight() {
+        return explosionHeight;
+    }
 }

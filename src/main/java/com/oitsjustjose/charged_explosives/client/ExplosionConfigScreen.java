@@ -31,9 +31,9 @@ public class ExplosionConfigScreen extends Screen {
     private EditBox widthBox;
     private EditBox depthBox;
     private EditBox heightBox;
-    private Component widthTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.width.title");
-    private Component depthTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.depth.title");
-    private Component heightTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.height.title");
+    private final Component widthTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.width.title");
+    private final Component depthTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.depth.title");
+    private final Component heightTitle = Util.translateOrFallback(ChargedExplosives.MODID + ".explosion.height.title");
 
     /* Constants */
     private final int TEXTURE_WIDTH = 176;
@@ -74,48 +74,48 @@ public class ExplosionConfigScreen extends Screen {
                 + (LW_MOD - EDIT_BOX_WIDTH - EB_MOD) /* Offset for the right btn */;
 
         /* Width Adj */
-        this.widthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + (rowWidth / 2) + EB_MOD, BG_Y + 40, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.widthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 40, EDIT_BOX_WIDTH, 20, Component.literal("")));
         this.widthBox.setValue("" + this.explosionWidth);
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + FW_MOD, BG_Y + 40, DECR_W, 20, DECR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 40, DECR_W, 20, DECR, onPress -> {
             if (this.explosionWidth > 0) {
                 this.explosionWidth--;
                 this.dirty = true;
                 this.widthBox.setValue("" + this.explosionWidth);
             }
         }));
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + LW_MOD, BG_Y + 40, INCR_W, 20, INCR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 40, INCR_W, 20, INCR, onPress -> {
             this.explosionWidth++;
             this.dirty = true;
             this.widthBox.setValue("" + this.explosionWidth);
         }));
 
         /* Depth Adj */
-        this.depthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + (rowWidth / 2) + EB_MOD, BG_Y + 85, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.depthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 85, EDIT_BOX_WIDTH, 20, Component.literal("")));
         this.depthBox.setValue("" + this.explosionDepth);
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + FW_MOD, BG_Y + 85, DECR_W, 20, DECR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 85, DECR_W, 20, DECR, onPress -> {
             if (this.explosionDepth > 0) {
                 this.explosionDepth--;
                 this.dirty = true;
                 this.depthBox.setValue("" + this.explosionDepth);
             }
         }));
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + LW_MOD, BG_Y + 85, INCR_W, 20, INCR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 85, INCR_W, 20, INCR, onPress -> {
             this.explosionDepth++;
             this.dirty = true;
             this.depthBox.setValue("" + this.explosionDepth);
         }));
 
         /* Height Adj */
-        this.heightBox = this.addRenderableWidget(new EditBox(this.font, BG_X + (rowWidth / 2) + EB_MOD, BG_Y + 130, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.heightBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 130, EDIT_BOX_WIDTH, 20, Component.literal("")));
         this.heightBox.setValue("" + this.explosionHeight);
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + FW_MOD, BG_Y + 130, DECR_W, 20, DECR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 130, DECR_W, 20, DECR, onPress -> {
             if (this.explosionHeight > 0) {
                 this.explosionHeight--;
                 this.dirty = true;
                 this.heightBox.setValue("" + this.explosionHeight);
             }
         }));
-        this.addRenderableWidget(new Button(BG_X + (rowWidth / 2) + LW_MOD, BG_Y + 130, INCR_W, 20, INCR, onPress -> {
+        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 130, INCR_W, 20, INCR, onPress -> {
             this.explosionHeight++;
             this.dirty = true;
             this.heightBox.setValue("" + this.explosionHeight);
