@@ -1,4 +1,4 @@
-package com.oitsjustjose.charged_explosives.client;
+package com.oitsjustjose.charged_explosives.client.gui;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;

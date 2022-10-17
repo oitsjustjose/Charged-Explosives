@@ -3,7 +3,9 @@ package com.oitsjustjose.charged_explosives.common;
 import com.oitsjustjose.charged_explosives.common.network.NetworkManager;
 import com.oitsjustjose.charged_explosives.common.network.OpenGuiPacket;
 import com.oitsjustjose.charged_explosives.common.network.UpdateNbtPacket;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.network.NetworkDirection;
@@ -31,5 +33,11 @@ public class CommonProxy {
 
     public void updateItemNbt(ItemStack stack) {
         // NOOP
+    }
+
+    public void addBlockToRender(Tuple<BlockPos, BlockPos> pos) {
+    }
+
+    public void removeBlockFromRender(Tuple<BlockPos, BlockPos> pos) {
     }
 }

@@ -1,11 +1,10 @@
 package com.oitsjustjose.charged_explosives.common.blocks;
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
-import com.oitsjustjose.charged_explosives.common.registry.Registry;
+import com.oitsjustjose.charged_explosives.common.items.ChargedExplosiveItem;
 import com.oitsjustjose.charged_explosives.common.tile.ChargedExplosiveBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
@@ -17,7 +16,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -28,7 +26,6 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
 import net.minecraft.world.phys.BlockHitResult;
@@ -53,12 +50,11 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     public ChargedExplosiveBlock() {
         super(BlockBehaviour.Properties.of(Material.EXPLOSIVE, MaterialColor.COLOR_GREEN).dynamicShape().noOcclusion().isValidSpawn((w, x, y, z) -> false).isRedstoneConductor((x, y, z) -> false).isSuffocating((x, y, z) -> false).isViewBlocking((x, y, z) -> false));
-
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FACE, AttachFace.WALL));
     }
 
     @Override
-    public @NotNull VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
+    public @NotNull VoxelShape getShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
         Direction direction = state.getValue(FACING);
         switch (state.getValue(FACE)) {
             case FLOOR:
@@ -87,38 +83,13 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     @Override
-    public @NotNull VoxelShape getCollisionShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context) {
-        Direction direction = state.getValue(FACING);
-        switch (state.getValue(FACE)) {
-            case FLOOR:
-                if (direction.getAxis() == Direction.Axis.X) {
-                    return FLOOR_AABB_X;
-                }
-
-                return FLOOR_AABB_Z;
-            case WALL:
-                return switch (direction) {
-                    case EAST -> EAST_AABB;
-                    case WEST -> WEST_AABB;
-                    case SOUTH -> SOUTH_AABB;
-                    case DOWN -> FLOOR_AABB_X;
-                    case UP -> CEILING_AABB_X;
-                    case NORTH -> NORTH_AABB;
-                };
-            case CEILING:
-            default:
-                if (direction.getAxis() == Direction.Axis.X) {
-                    return CEILING_AABB_X;
-                } else {
-                    return CEILING_AABB_Z;
-                }
-        }
+    public @NotNull VoxelShape getCollisionShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
+        return this.getShape(state, level, pos, context);
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> Builder) {
         Builder.add(FACING, FACE);
     }
-
 
     @Override
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, LivingEntity placer, @NotNull ItemStack stack) {
@@ -129,18 +100,15 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
         }
 
         CompoundTag tag = stack.getOrCreateTag().copy();
-        if (!tag.contains("explosionWidth") || !tag.contains("explosionHeight") || !tag.contains("explosionDepth")) {
-            tag.putInt("explosionWidth", 0);
-            tag.putInt("explosionHeight", 0);
-            tag.putInt("explosionDepth", 0);
-        }
-
         be.load(tag);
     }
 
     @Override
     public void onRemove(BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean moving) {
         if (!newState.is(oldState.getBlock())) {
+            if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+                ChargedExplosives.getInstance().proxy.removeBlockFromRender(cebe.getCorners());
+            }
             level.removeBlockEntity(pos);
         }
         super.onRemove(oldState, level, pos, newState, moving);
@@ -170,108 +138,24 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     @Override
     public InteractionResult use(@Nonnull BlockState state, @Nonnull Level level, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
-        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-            this.explode(level, pos, state, cebe.getExplosionWidth(), cebe.getExplosionHeight(), cebe.getExplosionDepth());
+        if (level.isClientSide()) {
+            player.swing(hand);
         }
+        this.explode(level, pos);
         return InteractionResult.CONSUME;
     }
 
-    private void explode(Level level, BlockPos pos, BlockState state, int width, int height, int depth) {
-        Direction direction = state.getValue(FACING);
-        AttachFace face = state.getValue(FACE);
 
-        int startX, endX, startY, endY, startZ, endZ;
-        startX = endX = startY = endY = startZ = endZ = 0;
-        switch (face) {
-            case FLOOR -> {
-                if (direction.getAxis() == Direction.Axis.X) {
-                    startX = pos.getX() - (int) Math.floor(height / 2F);
-                    endX = pos.getX() + (int) Math.ceil(height / 2F);
-                    startY = pos.getY() - depth;
-                    endY = pos.getY();
-                    startZ = pos.getZ() - (int) Math.floor(width / 2F) + 1;
-                    endZ = pos.getZ() + (int) Math.ceil(width / 2F) + 1;
-                } else {
-                    startX = pos.getX() - (int) Math.floor(width / 2F);
-                    endX = pos.getX() + (int) Math.ceil(width / 2F);
-                    startY = pos.getY() - depth;
-                    endY = pos.getY();
-                    startZ = pos.getZ() - (int) Math.floor(height / 2F);
-                    endZ = pos.getZ() + (int) Math.ceil(height / 2F);
+    private void explode(Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+            level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            cebe.getExplosions().forEach(p -> {
+                level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
+                if (level.isClientSide()) { // TODO: packetize me captain
+                    level.addParticle(ParticleTypes.EXPLOSION, (double) p.getX() + 0.5D, (double) p.getY() + 0.5D, (double) p.getZ() + 0.5D, 1.0D, 0.0D, 0.0D);
+                    ChargedExplosives.getInstance().proxy.removeBlockFromRender(cebe.getCorners());
                 }
-            }
-            case WALL -> {
-                switch (direction) {
-                    case NORTH -> {
-                        startX = pos.getX() - (int) Math.floor(width / 2F);
-                        endX = pos.getX() + (int) Math.ceil(width / 2F);
-                        startY = pos.getY() - (int) Math.floor(height / 2F);
-                        endY = pos.getY() + (int) Math.ceil(height / 2F);
-                        startZ = pos.getZ();
-                        endZ = pos.getZ() + depth;
-                    }
-                    case SOUTH -> {
-                        startX = pos.getX() - (int) Math.ceil(width / 2F) + 1;
-                        endX = pos.getX() + (int) Math.floor(width / 2F) + 1;
-                        startY = pos.getY() - (int) Math.ceil(height / 2F);
-                        endY = pos.getY() + (int) Math.floor(height / 2F);
-                        startZ = pos.getZ() - depth;
-                        endZ = pos.getZ();
-                    }
-                    case EAST -> {
-                        startX = pos.getX() - depth;
-                        endX = pos.getX();
-                        startY = pos.getY() - (int) Math.floor(height / 2F);
-                        endY = pos.getY() + (int) Math.ceil(height / 2F);
-                        startZ = pos.getZ() - (int) Math.floor(width / 2F);
-                        endZ = pos.getZ() + (int) Math.ceil(width / 2F);
-                    }
-                    case WEST -> {
-                        startX = pos.getX();
-                        endX = pos.getX() + depth;
-                        startY = pos.getY() - (int) Math.ceil(height / 2F);
-                        endY = pos.getY() + (int) Math.floor(height / 2F);
-                        startZ = pos.getZ() - (int) Math.ceil(width / 2F) + 1;
-                        endZ = pos.getZ() + (int) Math.floor(width / 2F) + 1;
-                    }
-                    default -> {
-                        break;
-                    }
-                }
-            }
-            case CEILING -> {
-                if (direction.getAxis() == Direction.Axis.X) {
-                    startX = pos.getX() - (int) Math.floor(height / 2F);
-                    endX = pos.getX() + (int) Math.ceil(height / 2F);
-                    startY = pos.getY();
-                    endY = pos.getY() + depth;
-                    startZ = pos.getZ() - (int) Math.floor(width / 2F);
-                    endZ = pos.getZ() + (int) Math.ceil(width / 2F);
-                } else {
-                    startX = pos.getX() - (int) Math.floor(width / 2F) + 1;
-                    endX = pos.getX() + (int) Math.ceil(width / 2F) + 1;
-                    startY = pos.getY();
-                    endY = pos.getY() + depth;
-                    startZ = pos.getZ() - (int) Math.floor(height / 2F);
-                    endZ = pos.getZ() + (int) Math.ceil(height / 2F);
-                }
-            }
-        }
-        this._explode(level, startX, startY, startZ, endX, endY, endZ);
-        level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
-    }
-
-    private void _explode(Level level, int startX, int startY, int startZ, int endX, int endY, int endZ) {
-        for (int x = startX; x < endX; x++) {
-            for (int z = startZ; z < endZ; z++) {
-                for (int y = startY; y < endY; y++) {
-                    BlockPos pos = new BlockPos(x, y, z);
-                    level.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
-                    if (level.isClientSide()) {
-                        level.addParticle(ParticleTypes.EXPLOSION, (double) x + 0.5D, (double) y + 0.5D, (double) z + 0.5D, 1.0D, 0.0D, 0.0D);
-                    }
-                }
-            }
+            });
         }
     }
 }

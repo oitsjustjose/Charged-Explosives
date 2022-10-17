@@ -1,6 +1,6 @@
 package com.oitsjustjose.charged_explosives.client.network;
 
-import com.oitsjustjose.charged_explosives.client.ExplosionConfigScreen;
+import com.oitsjustjose.charged_explosives.client.gui.ExplosionConfigScreen;
 import com.oitsjustjose.charged_explosives.common.network.OpenGuiPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.LogicalSide;
