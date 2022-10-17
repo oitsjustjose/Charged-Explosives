@@ -181,90 +181,83 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
         AttachFace face = state.getValue(FACE);
 
         int startX, endX, startY, endY, startZ, endZ;
+        startX = endX = startY = endY = startZ = endZ = 0;
         switch (face) {
             case FLOOR -> {
                 if (direction.getAxis() == Direction.Axis.X) {
-                    startX = pos.getX() - height;
-                    endX = pos.getX() + height + 1;
+                    startX = pos.getX() - (int) Math.floor(height / 2F);
+                    endX = pos.getX() + (int) Math.ceil(height / 2F);
                     startY = pos.getY() - depth;
                     endY = pos.getY();
-                    startZ = pos.getZ() - width;
-                    endZ = pos.getZ() + width + 1;
+                    startZ = pos.getZ() - (int) Math.floor(width / 2F) + 1;
+                    endZ = pos.getZ() + (int) Math.ceil(width / 2F) + 1;
                 } else {
-                    startX = pos.getX() - width;
-                    endX = pos.getX() + width + 1;
+                    startX = pos.getX() - (int) Math.floor(width / 2F);
+                    endX = pos.getX() + (int) Math.ceil(width / 2F);
                     startY = pos.getY() - depth;
                     endY = pos.getY();
-                    startZ = pos.getZ() - height;
-                    endZ = pos.getZ() + height + 1;
+                    startZ = pos.getZ() - (int) Math.floor(height / 2F);
+                    endZ = pos.getZ() + (int) Math.ceil(height / 2F);
                 }
-                this._explode(level, startX, startY, startZ, endX, endY, endZ);
             }
             case WALL -> {
                 switch (direction) {
                     case NORTH -> {
-                        startX = pos.getX() - width;
-                        endX = pos.getX() + width + 1;
-                        startY = pos.getY() - height;
-                        endY = pos.getY() + height + 1;
-                        startZ = pos.getZ() + 1;
-                        endZ = pos.getZ() + depth + 1;
+                        startX = pos.getX() - (int) Math.floor(width / 2F);
+                        endX = pos.getX() + (int) Math.ceil(width / 2F);
+                        startY = pos.getY() - (int) Math.floor(height / 2F);
+                        endY = pos.getY() + (int) Math.ceil(height / 2F);
+                        startZ = pos.getZ();
+                        endZ = pos.getZ() + depth;
                     }
                     case SOUTH -> {
-                        startX = pos.getX() - width;
-                        endX = pos.getX() + width + 1;
-                        startY = pos.getY() - height;
-                        endY = pos.getY() + height + 1;
+                        startX = pos.getX() - (int) Math.ceil(width / 2F) + 1;
+                        endX = pos.getX() + (int) Math.floor(width / 2F) + 1;
+                        startY = pos.getY() - (int) Math.ceil(height / 2F);
+                        endY = pos.getY() + (int) Math.floor(height / 2F);
                         startZ = pos.getZ() - depth;
                         endZ = pos.getZ();
                     }
                     case EAST -> {
                         startX = pos.getX() - depth;
                         endX = pos.getX();
-                        startY = pos.getY() - height;
-                        endY = pos.getY() + height + 1;
-                        startZ = pos.getZ() - width;
-                        endZ = pos.getZ() + width + 1;
+                        startY = pos.getY() - (int) Math.floor(height / 2F);
+                        endY = pos.getY() + (int) Math.ceil(height / 2F);
+                        startZ = pos.getZ() - (int) Math.floor(width / 2F);
+                        endZ = pos.getZ() + (int) Math.ceil(width / 2F);
                     }
                     case WEST -> {
-                        startX = pos.getX() + 1;
-                        endX = pos.getX() + depth + 1;
-                        startY = pos.getY() - height;
-                        endY = pos.getY() + height + 1;
-                        startZ = pos.getZ() - width;
-                        endZ = pos.getZ() + width + 1;
+                        startX = pos.getX();
+                        endX = pos.getX() + depth;
+                        startY = pos.getY() - (int) Math.ceil(height / 2F);
+                        endY = pos.getY() + (int) Math.floor(height / 2F);
+                        startZ = pos.getZ() - (int) Math.ceil(width / 2F) + 1;
+                        endZ = pos.getZ() + (int) Math.floor(width / 2F) + 1;
                     }
                     default -> {
-                        //NOOP
-                        startX = 0;
-                        endX = 0;
-                        startY = 0;
-                        endY = 0;
-                        startZ = 0;
-                        endZ = 0;
+                        break;
                     }
                 }
-                this._explode(level, startX, startY, startZ, endX, endY, endZ);
             }
             case CEILING -> {
                 if (direction.getAxis() == Direction.Axis.X) {
-                    startX = pos.getX() - height;
-                    endX = pos.getX() + height + 1;
+                    startX = pos.getX() - (int) Math.floor(height / 2F);
+                    endX = pos.getX() + (int) Math.ceil(height / 2F);
                     startY = pos.getY();
-                    endY = pos.getY() + depth + 1;
-                    startZ = pos.getZ() - width;
-                    endZ = pos.getZ() + width + 1;
+                    endY = pos.getY() + depth;
+                    startZ = pos.getZ() - (int) Math.floor(width / 2F);
+                    endZ = pos.getZ() + (int) Math.ceil(width / 2F);
                 } else {
-                    startX = pos.getX() - width;
-                    endX = pos.getX() + width + 1;
+                    startX = pos.getX() - (int) Math.floor(width / 2F) + 1;
+                    endX = pos.getX() + (int) Math.ceil(width / 2F) + 1;
                     startY = pos.getY();
-                    endY = pos.getY() + depth + 1;
-                    startZ = pos.getZ() - height;
-                    endZ = pos.getZ() + height + 1;
+                    endY = pos.getY() + depth;
+                    startZ = pos.getZ() - (int) Math.floor(height / 2F);
+                    endZ = pos.getZ() + (int) Math.ceil(height / 2F);
                 }
-                this._explode(level, startX, startY, startZ, endX, endY, endZ);
             }
         }
+        this._explode(level, startX, startY, startZ, endX, endY, endZ);
         level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
     }
 
