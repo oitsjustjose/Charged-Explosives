@@ -1,0 +1,6 @@
+{
+  "shapedchargebeep": {
+    "subtitle": "charge.beep.boops",
+    "sounds": ["charged_explosives:shapedchargebeep"]
+  }
+}

@@ -1,0 +1,80 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [4, 4],
+	"textures": {
+		"0": "charged_explosives:block/charged_explosive_main",
+		"2": "charged_explosives:block/shaped_charge_light",
+		"particle": "charged_explosives:block/charged_explosive_main"
+	},
+	"elements": [
+		{
+			"name": "charged_explosive_main",
+			"from": [2, 0, 4],
+			"to": [14, 3, 12],
+			"faces": {
+				"north": {"uv": [0, 10, 6, 13], "texture": "#0"},
+				"east": {"uv": [6, 10, 10, 13], "texture": "#0"},
+				"south": {"uv": [0, 13, 6, 16], "texture": "#0"},
+				"west": {"uv": [6, 13, 10, 16], "texture": "#0"},
+				"up": {"uv": [0, 2, 6, 10], "texture": "#0"},
+				"down": {"uv": [6, 2, 12, 10], "texture": "#0"}
+			}
+		},
+		{
+			"name": "shaped_charge_light",
+			"from": [10, 3, 7],
+			"to": [12, 4, 9],
+			"faces": {
+				"north": {"uv": [8, 0, 16, 4], "texture": "#2"},
+				"east": {"uv": [8, 8, 16, 12], "texture": "#2"},
+				"south": {"uv": [8, 8, 16, 4], "texture": "#2"},
+				"west": {"uv": [8, 12, 16, 16], "texture": "#2"},
+				"up": {"uv": [0, 0, 8, 8], "texture": "#2"},
+				"down": {"uv": [0, 8, 8, 16], "texture": "#2"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"translation": [0, 3, 1],
+			"scale": [0.55, 0.55, 0.55]
+		},
+		"thirdperson_lefthand": {
+			"rotation": [65, 0, 0],
+			"translation": [0, 3, 4.75],
+			"scale": [0.75, 0.75, 0.75]
+		},
+		"firstperson_righthand": {
+			"rotation": [65, 0, 0],
+			"translation": [0, 3.25, 0]
+		},
+		"firstperson_lefthand": {
+			"rotation": [65, 0, 0],
+			"translation": [0, 3.25, 0]
+		},
+		"ground": {
+			"translation": [0, 3, 0],
+			"scale": [0.75, 0.75, 0.75]
+		},
+		"gui": {
+			"rotation": [30, 45, 0],
+			"translation": [0, 5.25, 0]
+		},
+		"head": {
+			"rotation": [-90, -180, 0],
+			"translation": [0, 7.25, -14.5]
+		},
+		"fixed": {
+			"rotation": [-90, -180, 0],
+			"translation": [0, 0, -8]
+		}
+	},
+	"groups": [
+		{
+			"name": "shaped charge",
+			"origin": [0, 0, 0],
+			"color": 0,
+			"children": [0, 1]
+		}
+	]
+}

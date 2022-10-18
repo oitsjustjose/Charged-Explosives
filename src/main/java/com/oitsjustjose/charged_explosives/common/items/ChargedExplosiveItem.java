@@ -36,7 +36,7 @@ public class ChargedExplosiveItem extends BlockItem {
         // Set NBT if it hasn't been already
         ItemStack stack = player.getItemInHand(hand);
         stack.getOrCreateTag();
-        ChargedExplosives.getInstance().proxy.openExplosiveGui(player, stack);
+        ChargedExplosives.getInstance().PROXY.openExplosiveGui(player, stack);
         return super.use(level, player, hand);
     }
 

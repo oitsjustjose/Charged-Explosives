@@ -129,7 +129,7 @@ public class ExplosionConfigScreen extends Screen {
             tag.putInt("explosionWidth", explosionWidth);
             tag.putInt("explosionDepth", explosionDepth);
             tag.putInt("explosionHeight", explosionHeight);
-            ChargedExplosives.getInstance().proxy.updateItemNbt(stack);
+            ChargedExplosives.getInstance().PROXY.updateItemNbt(stack);
         }
         super.onClose();
     }

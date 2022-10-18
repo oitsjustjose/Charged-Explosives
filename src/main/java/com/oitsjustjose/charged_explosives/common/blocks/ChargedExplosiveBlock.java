@@ -1,6 +1,7 @@
 package com.oitsjustjose.charged_explosives.common.blocks;
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
+import com.oitsjustjose.charged_explosives.common.TickScheduler;
 import com.oitsjustjose.charged_explosives.common.tile.ChargedExplosiveBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,7 +17,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -33,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
 
@@ -105,7 +106,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     public void onRemove(BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean moving) {
         if (!newState.is(oldState.getBlock())) {
             if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-                ChargedExplosives.getInstance().proxy.endPreviewExplosion(cebe.getCorners());
+                ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
             }
             level.removeBlockEntity(pos);
         }
@@ -140,21 +141,52 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             player.swing(hand);
             return InteractionResult.SUCCESS;
         }
-        this.explode(level, pos);
+
+        // TODO: configs
+        final int DELAY_TIME_SECONDS = 5;
+        final int NUM_WARNING_BEEPS = 5;
+
+
+        ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explode(level, pos), DELAY_TIME_SECONDS));
+        for (int i = 0; i < NUM_WARNING_BEEPS; i++) {
+            ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(
+                    () -> level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F),
+                    (DELAY_TIME_SECONDS / NUM_WARNING_BEEPS) * i
+            ));
+        }
+
         return InteractionResult.CONSUME;
     }
 
 
     private void explode(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-            level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            ChargedExplosives.getInstance().proxy.endPreviewExplosion(cebe.getCorners());
-            // ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥
-            cebe.getExplosions().forEach(p -> {
+            /* ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥ */
+            AtomicInteger explodedCount = new AtomicInteger();
 
-//                level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
-                ChargedExplosives.getInstance().proxy.spawnExplosionParticle(p);
+            cebe.getExplosions().forEach(p -> {
+                BlockState state = level.getBlockState(p);
+                if (!state.hasBlockEntity()) {
+                    /* indestructible blocks will return -1.0F */
+                    if (state.getBlock().defaultDestroyTime() >= 0.0 && !state.isAir()) {
+                        level.removeBlock(p, false);
+                        /* Ignore the yellow squiggles below - p_49886 is passed to a func where it's Nullable */
+                        Block.dropResources(state, level, p, null, null, ItemStack.EMPTY);
+                        explodedCount.getAndIncrement();
+                        if (level.getRandom().nextBoolean()) {
+                            ChargedExplosives.getInstance().PROXY.spawnExplosionParticle(p);
+                        }
+                    }
+                }
             });
+
+
+            if (explodedCount.get() > 0) {
+                level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
+                ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
+                level.removeBlockEntity(pos);
+                level.removeBlock(pos, false);
+            }
         }
     }
 }

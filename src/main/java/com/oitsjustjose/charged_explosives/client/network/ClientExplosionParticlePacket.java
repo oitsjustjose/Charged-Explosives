@@ -10,6 +10,9 @@ import java.util.function.Supplier;
 
 public class ClientExplosionParticlePacket {
     public static void handleClient(ExplosionParticlePacket pkt, Supplier<NetworkEvent.Context> ctx) {
+        double e = 1.5D;
+        double f = 10.0D;
+        double g = 0.0D;
         if (ctx.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
             ctx.get().enqueueWork(() -> {
                 if (Minecraft.getInstance().level != null) {
@@ -18,7 +21,7 @@ public class ClientExplosionParticlePacket {
                             (double) pkt.pos.getX() + 0.5D,
                             (double) pkt.pos.getY() + 0.5D,
                             (double) pkt.pos.getZ() + 0.5D,
-                            1.0D, 0.0D, 0.0D
+                            e,f,g
                     );
                 }
             });

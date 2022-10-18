@@ -11,7 +11,6 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -41,7 +40,7 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
         this.explosionHeight = tag.getInt("explosionHeight");
         this.explosionDepth = tag.getInt("explosionDepth");
         calculateExplosions();
-        ChargedExplosives.getInstance().proxy.startPreviewExplosion(this.cornerToCorner);
+        ChargedExplosives.getInstance().PROXY.startPreviewExplosion(this.cornerToCorner);
         this.setChanged();
     }
 
@@ -100,10 +99,10 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
                         endZ = pos.getZ() + explosionDepth + 1;
                     }
                     case SOUTH -> {
-                        startX = pos.getX() - (int) Math.ceil(explosionWidth / 2F) + 1;
-                        endX = pos.getX() + (int) Math.floor(explosionWidth / 2F) + 1;
-                        startY = pos.getY() - (int) Math.ceil(explosionHeight / 2F);
-                        endY = pos.getY() + (int) Math.floor(explosionHeight / 2F);
+                        startX = pos.getX() - (int) Math.floor(explosionWidth / 2F);
+                        endX = pos.getX() + (int) Math.ceil(explosionWidth / 2F);
+                        startY = pos.getY() - (int) Math.floor(explosionHeight / 2F);
+                        endY = pos.getY() + (int) Math.ceil(explosionHeight / 2F);
                         startZ = pos.getZ() - explosionDepth;
                         endZ = pos.getZ();
                     }
@@ -116,12 +115,12 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
                         endZ = pos.getZ() + (int) Math.ceil(explosionWidth / 2F);
                     }
                     case WEST -> {
-                        startX = pos.getX();
-                        endX = pos.getX() + explosionDepth;
-                        startY = pos.getY() - (int) Math.ceil(explosionHeight / 2F);
-                        endY = pos.getY() + (int) Math.floor(explosionHeight / 2F);
-                        startZ = pos.getZ() - (int) Math.ceil(explosionWidth / 2F) + 1;
-                        endZ = pos.getZ() + (int) Math.floor(explosionWidth / 2F) + 1;
+                        startX = pos.getX() + 1;
+                        endX = pos.getX() + explosionDepth + 1;
+                        startY = pos.getY() - (int) Math.floor(explosionHeight / 2F);
+                        endY = pos.getY() + (int) Math.ceil(explosionHeight / 2F);
+                        startZ = pos.getZ() - (int) Math.floor(explosionWidth / 2F);
+                        endZ = pos.getZ() + (int) Math.ceil(explosionWidth / 2F);
                     }
                     default -> {
                         break;

@@ -8,5 +8,6 @@
   "charged_explosives.depth_tooltip": "  §8Depth: §8%s§r",
   "charged_explosives.height_tooltip": "  §8Height: §8%s§r",
   "charged_explosives.needs_init": "This Explosive Needs to be Configured",
+  "charge.beep.boops": "§cCharged Explosive Beeps Aggressively§r",
   "block.charged_explosives.charged_explosive": "Explosive Charge"
 }

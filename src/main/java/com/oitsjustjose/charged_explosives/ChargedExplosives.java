@@ -2,6 +2,7 @@ package com.oitsjustjose.charged_explosives;
 
 import com.oitsjustjose.charged_explosives.client.ClientProxy;
 import com.oitsjustjose.charged_explosives.common.CommonProxy;
+import com.oitsjustjose.charged_explosives.common.TickScheduler;
 import com.oitsjustjose.charged_explosives.common.registry.Registry;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
@@ -19,14 +20,17 @@ public class ChargedExplosives {
     public static final String MODID = "charged_explosives";
     public final Logger LOGGER = LogManager.getLogger();
     public final Registry REGISTRY = new Registry();
-    public final CommonProxy proxy = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
+    public final CommonProxy PROXY = DistExecutor.safeRunForDist(() -> ClientProxy::new, () -> CommonProxy::new);
+    public final TickScheduler SCHEDULER = new TickScheduler();
 
     public ChargedExplosives() {
         instance = this;
         REGISTRY.BlockRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
         REGISTRY.ItemRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
         REGISTRY.BlockEntityTypeRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
+        REGISTRY.SoundEventRegistry.register(FMLJavaModLoadingContext.get().getModEventBus());
         MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(SCHEDULER);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
     }
 
@@ -35,7 +39,7 @@ public class ChargedExplosives {
     }
 
     public void setup(final FMLCommonSetupEvent evt) {
-        proxy.init();
+        PROXY.init();
     }
 
     @SubscribeEvent

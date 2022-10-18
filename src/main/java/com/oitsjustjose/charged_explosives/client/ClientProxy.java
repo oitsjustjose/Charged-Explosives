@@ -9,15 +9,11 @@ import com.oitsjustjose.charged_explosives.common.network.ExplosionParticlePacke
 import com.oitsjustjose.charged_explosives.common.network.OpenGuiPacket;
 import com.oitsjustjose.charged_explosives.common.network.PreviewExplosionPacket;
 import com.oitsjustjose.charged_explosives.common.network.UpdateNbtPacket;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Optional;
 
@@ -40,31 +36,17 @@ public class ClientProxy extends CommonProxy {
         CommonProxy.netMgr.networkWrapper.sendToServer(pkt);
     }
 
-    public void openExplosiveGui(Player player, ItemStack stack) {
-        super.openExplosiveGui(player, stack);
-    }
-
-    @Override
     public void startPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
-        bdRenderer.addExplosion(corners);
-//        super.startPreviewExplosion(corners);
+        if(corners != null && corners.getA() != null && corners.getB() != null) {
+            bdRenderer.addExplosion(corners);
+
+        }
     }
 
-    @Override
     public void endPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
-        bdRenderer.removeExplosion(corners);
-//        super.endPreviewExplosion(corners);
-    }
+        if(corners != null && corners.getA() != null && corners.getB() != null) {
+            bdRenderer.removeExplosion(corners);
 
-    public void spawnExplosionParticle(BlockPos pos) {
-        if (Minecraft.getInstance().level != null) {
-            Minecraft.getInstance().level.addParticle(
-                    ParticleTypes.EXPLOSION,
-                    (double) pos.getX() + 0.5D,
-                    (double) pos.getY() + 0.5D,
-                    (double) pos.getZ() + 0.5D,
-                    1.0D, 0.0D, 0.0D
-            );
         }
     }
 }
