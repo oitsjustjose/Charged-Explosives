@@ -195,7 +195,9 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
                     if (state.getBlock().defaultDestroyTime() >= 0.0 && !state.isAir()) {
                         level.removeBlock(p, false);
                         /* Ignore the yellow squiggles below - p_49886 is passed to a func where it's Nullable */
-                        Block.dropResources(state, level, p, null, null, ItemStack.EMPTY);
+                        if (CommonConfig.EXPLOSION_DROPS.get()) {
+                            Block.dropResources(state, level, p, null, null, ItemStack.EMPTY);
+                        }
                         if (level.getRandom().nextBoolean()) {
                             ChargedExplosives.getInstance().PROXY.spawnExplosionParticle(p);
                         }

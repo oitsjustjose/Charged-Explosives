@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    {
+      "item": "charged_explosives:charged_explosive"
+    }
+  ],
+  "result": {
+    "item": "charged_explosives:charged_explosive"
+  }
+}

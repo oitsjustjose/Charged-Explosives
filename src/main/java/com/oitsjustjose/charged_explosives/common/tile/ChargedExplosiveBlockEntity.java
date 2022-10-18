@@ -59,9 +59,9 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
     }
 
     public float calculateConcussiveDamage() {
-        return (((float) this.explosionWidth / (CommonConfig.MAX_EXPLOSION_WIDTH.get() / 2F)) +
-                ((float) this.explosionHeight / (CommonConfig.MAX_EXPLOSION_HEIGHT.get() / 2F)) +
-                ((float) this.explosionDepth / (CommonConfig.MAX_EXPLOSION_DEPTH.get() / 2F))) *
+        return (((float) this.explosionWidth / (CommonConfig.MAX_EXPLOSION_WIDTH.get() / 4F)) +
+                ((float) this.explosionHeight / (CommonConfig.MAX_EXPLOSION_HEIGHT.get() / 4F)) +
+                ((float) this.explosionDepth / (CommonConfig.MAX_EXPLOSION_DEPTH.get() / 4F))) *
                 CommonConfig.CONCUSSIVE_DAMAGE_SCALE.get().floatValue();
     }
 

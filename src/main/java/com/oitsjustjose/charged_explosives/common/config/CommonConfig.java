@@ -1,13 +1,12 @@
 package com.oitsjustjose.charged_explosives.common.config;
 
-import java.nio.file.Path;
-
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
-
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.ForgeConfigSpec.Builder;
 import net.minecraftforge.fml.common.Mod;
+
+import java.nio.file.Path;
 
 @Mod.EventBusSubscriber
 public class CommonConfig {
@@ -20,6 +19,7 @@ public class CommonConfig {
     public static ForgeConfigSpec.IntValue MAX_EXPLOSION_DEPTH;
     public static ForgeConfigSpec.IntValue EXPLOSION_COUNTDOWN_TIME;
     public static ForgeConfigSpec.IntValue NUM_BEEPS;
+    public static ForgeConfigSpec.BooleanValue EXPLOSION_DROPS;
     private static final String CATEGORY_MISC = "common_configuration";
 
     static {
@@ -47,8 +47,11 @@ public class CommonConfig {
 
         EXPLOSION_COUNTDOWN_TIME = COMMON_BUILDER.comment("The amount of time between activating an explosive and when it detonates, in seconds. Setting to 0 makes it instant")
                 .defineInRange("detonationCountdownTime", 5, 0, Integer.MAX_VALUE);
-        NUM_BEEPS=COMMON_BUILDER.comment("The number of warning beeps given after setting an explosive off to detonate. Time is distributed evenly across the value configured in 'detonationCountdownTime'")
-                        .defineInRange("detonationBeepCount", 5, 0, Integer.MAX_VALUE);
+        NUM_BEEPS = COMMON_BUILDER.comment("The number of warning beeps given after setting an explosive off to detonate. Time is distributed evenly across the value configured in 'detonationCountdownTime'")
+                .defineInRange("detonationBeepCount", 5, 0, Integer.MAX_VALUE);
+
+        EXPLOSION_DROPS = COMMON_BUILDER.comment("Controls if a charge's explosion should provide drops. Setting this to true will drop items, false will not")
+                .define("explosionsDropItems", true);
 
         COMMON_BUILDER.pop();
     }
