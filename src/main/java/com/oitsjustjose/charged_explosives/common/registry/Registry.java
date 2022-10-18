@@ -23,5 +23,6 @@ public class Registry {
     public final RegistryObject<Block> CeBlock = BlockRegistry.register("charged_explosive", ChargedExplosiveBlock::new);
     public final RegistryObject<Item> CeItem = ItemRegistry.register("charged_explosive", () -> new ChargedExplosiveItem(CeBlock.get()));
     public final RegistryObject<BlockEntityType<ChargedExplosiveBlockEntity>> CeBlockEntityType = BlockEntityTypeRegistry.register("charged_explosive", () -> BlockEntityType.Builder.of(ChargedExplosiveBlockEntity::new, Blocks.AIR).build(null));
-    public final RegistryObject<SoundEvent> BeepBoop = SoundEventRegistry.register("shapedchargebeep", () -> new SoundEvent(new ResourceLocation(ChargedExplosives.MODID, "shapedchargebeep")));
+    public final RegistryObject<SoundEvent> BeepSound = SoundEventRegistry.register("beep", () -> new SoundEvent(new ResourceLocation(ChargedExplosives.MODID, "beep")));
+    public final RegistryObject<SoundEvent> FailureSound = SoundEventRegistry.register("fail", () -> new SoundEvent(new ResourceLocation(ChargedExplosives.MODID, "fail")));
 }

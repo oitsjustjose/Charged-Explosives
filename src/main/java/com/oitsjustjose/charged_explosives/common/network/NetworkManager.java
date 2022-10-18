@@ -9,7 +9,7 @@ public class NetworkManager {
     public SimpleChannel networkWrapper;
     private static final String PROTOCOL_VERSION = "1";
 
-    public NetworkManager(String nm) {
-        this.networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(ChargedExplosives.MODID, nm), () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals, PROTOCOL_VERSION::equals);
+    public NetworkManager() {
+        this.networkWrapper = NetworkRegistry.newSimpleChannel(new ResourceLocation(ChargedExplosives.MODID, "main"), () -> PROTOCOL_VERSION, PROTOCOL_VERSION::equals, PROTOCOL_VERSION::equals);
     }
 }

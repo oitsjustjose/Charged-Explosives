@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -29,7 +30,7 @@ import java.util.Objects;
 
 public class ChargedExplosiveItem extends BlockItem {
     public ChargedExplosiveItem(Block block) {
-        super(block, new Item.Properties());
+        super(block, new Item.Properties().tab(CreativeModeTab.TAB_REDSTONE));
     }
 
     @Override
@@ -65,13 +66,14 @@ public class ChargedExplosiveItem extends BlockItem {
     @Override
     public @NotNull InteractionResult place(BlockPlaceContext context) {
         ItemStack stack = context.getItemInHand();
-        // TODO: noises
         if (!isNbtInitialized(stack)) {
             Objects.requireNonNull(context.getPlayer()).displayClientMessage(Util.translateOrFallback(ChargedExplosives.MODID + ".needs_init"), true);
+            context.getPlayer().playSound(ChargedExplosives.getInstance().REGISTRY.FailureSound.get(), 0.75F, 0.9F);
             return InteractionResult.FAIL;
         }
         if (!isNbtValid(stack)) {
             Objects.requireNonNull(context.getPlayer()).displayClientMessage(Util.translateOrFallback(ChargedExplosives.MODID + ".invalid_config"), true);
+            context.getPlayer().playSound(ChargedExplosives.getInstance().REGISTRY.FailureSound.get(), 0.75F, 0.9F);
             return InteractionResult.FAIL;
         }
         return super.place(context);

@@ -168,7 +168,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             for (int i = 0; i < CommonConfig.NUM_BEEPS.get(); i++) {
                 cebe.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> {
                     if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) { // check that it's still there
-                        level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+                        level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepSound.get(), SoundSource.BLOCKS, 0.75F, 1.0F);
                     }
                 }, (CommonConfig.EXPLOSION_COUNTDOWN_TIME.get() / CommonConfig.NUM_BEEPS.get()) * i)));
             }
