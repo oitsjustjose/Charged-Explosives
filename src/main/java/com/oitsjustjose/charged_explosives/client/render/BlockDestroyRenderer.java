@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
+import com.oitsjustjose.charged_explosives.client.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class BlockDestroyRenderer {
@@ -29,7 +29,9 @@ public class BlockDestroyRenderer {
 
     @SubscribeEvent
     public void renderWorldLastEvent(RenderLevelStageEvent event) {
-        this.renderSelectedBlocks(event);
+        if (ClientConfig.ENABLE_EXPLOSION_PREVIEW_RENDER.get()) {
+            this.renderSelectedBlocks(event);
+        }
     }
 
     protected void renderSelectedBlocks(RenderLevelStageEvent event) {
@@ -39,9 +41,7 @@ public class BlockDestroyRenderer {
 
         Minecraft mc = Minecraft.getInstance();
 
-        this.highlightedBlocks.stream().filter(x -> {
-            return x.getA().distToCenterSqr(mc.gameRenderer.getMainCamera().getPosition()) < 256D;
-        }).forEach(pos -> {
+        this.highlightedBlocks.stream().filter(x -> x.getA().distToCenterSqr(mc.gameRenderer.getMainCamera().getPosition()) < 256D).forEach(pos -> {
             PoseStack stack = event.getPoseStack();
             MultiBufferSource.BufferSource buf = mc.renderBuffers().bufferSource();
             VertexConsumer builder = buf.getBuffer(BlockOutlineRenderType.OVERLAY_LINES);

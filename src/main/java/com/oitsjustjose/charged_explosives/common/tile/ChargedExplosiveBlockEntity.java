@@ -1,6 +1,7 @@
 package com.oitsjustjose.charged_explosives.common.tile;
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
+import com.oitsjustjose.charged_explosives.common.config.CommonConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -11,8 +12,10 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class ChargedExplosiveBlockEntity extends BlockEntity {
     private int explosionWidth = 0;
@@ -20,11 +23,13 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
     private int explosionDepth = 0;
     private boolean goingOffNow = false;
     private ArrayList<BlockPos> explosionPositions;
+    private final ArrayList<UUID> scheduledTasks;
     private Tuple<BlockPos, BlockPos> cornerToCorner;
 
     public ChargedExplosiveBlockEntity(BlockPos pos, BlockState state) {
         super(ChargedExplosives.getInstance().REGISTRY.CeBlockEntityType.get(), pos, state);
         this.explosionPositions = new ArrayList<>();
+        this.scheduledTasks = new ArrayList<>();
     }
 
     @Override
@@ -35,7 +40,7 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void load(CompoundTag tag) {
+    public void load(@NotNull CompoundTag tag) {
         super.load(tag);
         this.explosionWidth = tag.getInt("explosionWidth");
         this.explosionHeight = tag.getInt("explosionHeight");
@@ -51,7 +56,13 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
         tag.putInt("explosionWidth", explosionWidth);
         tag.putInt("explosionHeight", explosionHeight);
         tag.putInt("explosionDepth", explosionDepth);
-        super.saveToItem(stack);
+    }
+
+    public float calculateConcussiveDamage() {
+        return (((float) this.explosionWidth / (CommonConfig.MAX_EXPLOSION_WIDTH.get() / 2F)) +
+                ((float) this.explosionHeight / (CommonConfig.MAX_EXPLOSION_HEIGHT.get() / 2F)) +
+                ((float) this.explosionDepth / (CommonConfig.MAX_EXPLOSION_DEPTH.get() / 2F))) *
+                CommonConfig.CONCUSSIVE_DAMAGE_SCALE.get().floatValue();
     }
 
     public ArrayList<BlockPos> getExplosions() {
@@ -124,7 +135,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
                         endZ = pos.getZ() + (int) Math.ceil(explosionWidth / 2F);
                     }
                     default -> {
-                        break;
                     }
                 }
             }
@@ -165,5 +175,15 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
 
     public void setActivated() {
         this.goingOffNow = true;
+    }
+
+    public void addScheduledTask(UUID uuid) {
+        this.scheduledTasks.add(uuid);
+    }
+
+    @Override
+    public void setRemoved() {
+        this.scheduledTasks.forEach(ChargedExplosives.getInstance().SCHEDULER::cancelTask);
+        super.setRemoved();
     }
 }

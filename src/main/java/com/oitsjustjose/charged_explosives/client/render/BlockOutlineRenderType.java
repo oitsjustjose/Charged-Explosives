@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.RenderType;
 
 import java.util.OptionalDouble;
 
-
 public class BlockOutlineRenderType extends RenderType {
     private static final LineStateShard THICK_LINES = new LineStateShard(OptionalDouble.of(4.0D));
     public static final RenderType OVERLAY_LINES = create("overlay_lines",

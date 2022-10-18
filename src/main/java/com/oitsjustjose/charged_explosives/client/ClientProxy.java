@@ -39,14 +39,12 @@ public class ClientProxy extends CommonProxy {
     public void startPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
         if(corners != null && corners.getA() != null && corners.getB() != null) {
             bdRenderer.addExplosion(corners);
-
         }
     }
 
     public void endPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
         if(corners != null && corners.getA() != null && corners.getB() != null) {
             bdRenderer.removeExplosion(corners);
-
         }
     }
 }

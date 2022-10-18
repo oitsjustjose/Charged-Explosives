@@ -2,6 +2,7 @@ package com.oitsjustjose.charged_explosives.common.blocks;
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
 import com.oitsjustjose.charged_explosives.common.TickScheduler;
+import com.oitsjustjose.charged_explosives.common.config.CommonConfig;
 import com.oitsjustjose.charged_explosives.common.tile.ChargedExplosiveBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,12 +11,12 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -26,8 +27,10 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -35,7 +38,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.List;
+import java.util.Objects;
 
 public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBlock implements EntityBlock {
 
@@ -84,7 +88,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     @Override
-    public @NotNull VoxelShape getCollisionShape(BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
+    public @NotNull VoxelShape getCollisionShape(@NotNull BlockState state, @NotNull BlockGetter level, @NotNull BlockPos pos, @NotNull CollisionContext context) {
         return this.getShape(state, level, pos, context);
     }
 
@@ -104,17 +108,23 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
         be.load(tag);
         if (placer.getOffhandItem().getItem() == Items.REDSTONE_TORCH) {
             this.explode(level, pos);
+        } else if (level.hasNeighborSignal(pos)) {
+            this.explode(level, pos);
         }
     }
 
     @Override
-    public void onRemove(BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean moving) {
-        if (!newState.is(oldState.getBlock())) {
-            if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-                ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
-            }
-            level.removeBlockEntity(pos);
+    public void onRemove(@NotNull BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean moving) {
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
+            ItemStack stack = new ItemStack(ChargedExplosives.getInstance().REGISTRY.CeItem.get());
+            cebe.saveToItem(stack);
+            ItemEntity ent = new ItemEntity(level, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, stack);
+            ent.setDefaultPickUpDelay();
+            level.addFreshEntity(ent);
         }
+
+        level.removeBlockEntity(pos);
         super.onRemove(oldState, level, pos, newState, moving);
     }
 
@@ -125,53 +135,24 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     @Override
-    // TODO: apply same logic if block is just *poof'd*
-    public void playerWillDestroy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player) {
-        if (player.isCreative()) {
-            return;
-        }
-
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof ChargedExplosiveBlockEntity expBe) {
-            ItemStack stack = new ItemStack(ChargedExplosives.getInstance().REGISTRY.CeItem.get());
-            expBe.saveToItem(stack);
-            ItemEntity ent = new ItemEntity(level, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, stack);
-            ent.setDefaultPickUpDelay();
-            level.addFreshEntity(ent);
-        }
-        // TODO (MAYBE): ability to store upcoming tasks for this tile entity and cancel them on break
-    }
-
-    @Override
-    public InteractionResult use(@Nonnull BlockState state, @Nonnull Level level, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
+    public @NotNull InteractionResult use(@Nonnull BlockState state, @Nonnull Level level, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
         if (level.isClientSide()) {
             player.swing(hand);
             return InteractionResult.SUCCESS;
         }
-        explode(level, pos);
+        this.explode(level, pos);
         return InteractionResult.CONSUME;
     }
 
     @Override
-    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+    public void neighborChanged(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
         if (level.hasNeighborSignal(pos)) {
             if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
                 if (!cebe.hasBeenActivated()) {
-                    cebe.setActivated();
-                    explode(level, pos);
+                    this.explode(level, pos);
                 }
             }
         }
-    }
-
-    @Nullable
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        if (ctx.getLevel().hasNeighborSignal(ctx.getClickedPos())) {
-            this.explode(ctx.getLevel(), ctx.getClickedPos());
-        }
-        return super.getStateForPlacement(ctx);
-//        return (BlockState)this\.defaultBlockState().setValue(LIT, p_55659_.getLevel().hasNeighborSignal(p_55659_.getClickedPos()));
     }
 
     private void explode(Level level, BlockPos pos) {
@@ -181,32 +162,32 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             } else {
                 cebe.setActivated();
             }
+
+
+            cebe.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explodeTask(level, pos), CommonConfig.EXPLOSION_COUNTDOWN_TIME.get())));
+            for (int i = 0; i < CommonConfig.NUM_BEEPS.get(); i++) {
+                cebe.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> {
+                    if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) { // check that it's still there
+                        level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+                    }
+                }, (CommonConfig.EXPLOSION_COUNTDOWN_TIME.get() / CommonConfig.NUM_BEEPS.get()) * i)));
+            }
         }
 
-        // TODO: configs
-        final int DELAY_TIME_SECONDS = 5;
-        final int NUM_WARNING_BEEPS = 5;
-
-
-        ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explodeTask(level, pos), DELAY_TIME_SECONDS));
-        for (int i = 0; i < NUM_WARNING_BEEPS; i++) {
-            ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(
-                    () -> {
-                        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) { // check that it's still there
-                            level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
-                        }
-                    },
-                    (DELAY_TIME_SECONDS / NUM_WARNING_BEEPS) * i
-            ));
-        }
     }
 
 
     private void explodeTask(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
             /* ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥ */
-            AtomicInteger explodedCount = new AtomicInteger();
 
+            level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
+            level.removeBlockEntity(pos);
+            level.removeBlock(pos, false);
+
+            AABB aabb = new AABB(cebe.getCorners().getA(), cebe.getCorners().getB()).inflate(5.0D);
+            float dmgAmt = cebe.calculateConcussiveDamage();
             cebe.getExplosions().forEach(p -> {
                 BlockState state = level.getBlockState(p);
                 if (!state.hasBlockEntity()) {
@@ -215,22 +196,15 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
                         level.removeBlock(p, false);
                         /* Ignore the yellow squiggles below - p_49886 is passed to a func where it's Nullable */
                         Block.dropResources(state, level, p, null, null, ItemStack.EMPTY);
-                        explodedCount.getAndIncrement();
                         if (level.getRandom().nextBoolean()) {
                             ChargedExplosives.getInstance().PROXY.spawnExplosionParticle(p);
                         }
                     }
                 }
             });
+            List<LivingEntity> entities = level.getEntities(EntityTypeTest.forClass(LivingEntity.class), aabb, Objects::nonNull);
 
-
-//            TODO: if explosion doesn't happen, make a new sound
-            if (explodedCount.get() > 0) {
-                level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
-                ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
-                level.removeBlockEntity(pos);
-                level.removeBlock(pos, false);
-            }
+            entities.forEach(x -> x.hurt(DamageSource.GENERIC, dmgAmt));
         }
     }
 }
