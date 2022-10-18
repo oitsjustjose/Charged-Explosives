@@ -1,8 +1,6 @@
 package com.oitsjustjose.charged_explosives.common;
 
-import com.oitsjustjose.charged_explosives.common.network.NetworkManager;
-import com.oitsjustjose.charged_explosives.common.network.OpenGuiPacket;
-import com.oitsjustjose.charged_explosives.common.network.UpdateNbtPacket;
+import com.oitsjustjose.charged_explosives.common.network.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Tuple;
@@ -21,6 +19,8 @@ public class CommonProxy {
 
     public void init() {
         CommonProxy.netMgr.networkWrapper.registerMessage(CommonProxy.disc++, OpenGuiPacket.class, OpenGuiPacket::encode, OpenGuiPacket::decode, OpenGuiPacket::handleServer);
+        CommonProxy.netMgr.networkWrapper.registerMessage(CommonProxy.disc++, PreviewExplosionPacket.class, PreviewExplosionPacket::encode, PreviewExplosionPacket::decode, PreviewExplosionPacket::handleServer);
+        CommonProxy.netMgr.networkWrapper.registerMessage(CommonProxy.disc++, ExplosionParticlePacket.class, ExplosionParticlePacket::encode, ExplosionParticlePacket::decode, ExplosionParticlePacket::handleServer);
         CommonProxy.netMgr.networkWrapper.registerMessage(CommonProxy.disc++, UpdateNbtPacket.class, UpdateNbtPacket::encode, UpdateNbtPacket::decode, UpdateNbtPacket::handle, Optional.of(NetworkDirection.PLAY_TO_SERVER));
     }
 
@@ -31,13 +31,22 @@ public class CommonProxy {
         }
     }
 
+    public void startPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
+        PreviewExplosionPacket pkt = new PreviewExplosionPacket(corners, PreviewExplosionPacket.ACTION_ADD);
+        CommonProxy.netMgr.networkWrapper.send(PacketDistributor.ALL.noArg(), pkt);
+    }
+
+    public void endPreviewExplosion(Tuple<BlockPos, BlockPos> corners) {
+        PreviewExplosionPacket pkt = new PreviewExplosionPacket(corners, PreviewExplosionPacket.ACTION_REMOVE);
+        CommonProxy.netMgr.networkWrapper.send(PacketDistributor.ALL.noArg(), pkt);
+    }
+
+    public void spawnExplosionParticle(BlockPos pos) {
+        ExplosionParticlePacket pkt = new ExplosionParticlePacket(pos);
+        CommonProxy.netMgr.networkWrapper.send(PacketDistributor.ALL.noArg(), pkt);
+    }
+
     public void updateItemNbt(ItemStack stack) {
         // NOOP
-    }
-
-    public void addBlockToRender(Tuple<BlockPos, BlockPos> pos) {
-    }
-
-    public void removeBlockFromRender(Tuple<BlockPos, BlockPos> pos) {
     }
 }

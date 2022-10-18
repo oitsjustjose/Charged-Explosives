@@ -1,11 +1,9 @@
 package com.oitsjustjose.charged_explosives.common.blocks;
 
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
-import com.oitsjustjose.charged_explosives.common.items.ChargedExplosiveItem;
 import com.oitsjustjose.charged_explosives.common.tile.ChargedExplosiveBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -107,7 +105,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     public void onRemove(BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, BlockState newState, boolean moving) {
         if (!newState.is(oldState.getBlock())) {
             if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-                ChargedExplosives.getInstance().proxy.removeBlockFromRender(cebe.getCorners());
+                ChargedExplosives.getInstance().proxy.endPreviewExplosion(cebe.getCorners());
             }
             level.removeBlockEntity(pos);
         }
@@ -122,7 +120,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     @Override
     public void playerWillDestroy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player) {
-        if (level.isClientSide() || player.isCreative()) {
+        if (player.isCreative()) {
             return;
         }
 
@@ -140,6 +138,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     public InteractionResult use(@Nonnull BlockState state, @Nonnull Level level, @Nonnull BlockPos pos, @Nonnull Player player, @Nonnull InteractionHand hand, @Nonnull BlockHitResult hit) {
         if (level.isClientSide()) {
             player.swing(hand);
+            return InteractionResult.SUCCESS;
         }
         this.explode(level, pos);
         return InteractionResult.CONSUME;
@@ -149,12 +148,12 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     private void explode(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
             level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
+            ChargedExplosives.getInstance().proxy.endPreviewExplosion(cebe.getCorners());
+            // ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥
             cebe.getExplosions().forEach(p -> {
-                level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
-                if (level.isClientSide()) { // TODO: packetize me captain
-                    level.addParticle(ParticleTypes.EXPLOSION, (double) p.getX() + 0.5D, (double) p.getY() + 0.5D, (double) p.getZ() + 0.5D, 1.0D, 0.0D, 0.0D);
-                    ChargedExplosives.getInstance().proxy.removeBlockFromRender(cebe.getCorners());
-                }
+
+//                level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
+                ChargedExplosives.getInstance().proxy.spawnExplosionParticle(p);
             });
         }
     }

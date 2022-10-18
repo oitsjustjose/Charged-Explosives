@@ -3,6 +3,7 @@ package com.oitsjustjose.charged_explosives.common.items;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
 import com.oitsjustjose.charged_explosives.common.Util;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -17,8 +18,10 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
@@ -53,6 +56,11 @@ public class ChargedExplosiveItem extends BlockItem {
             return InteractionResult.FAIL;
         }
         return super.place(context);
+    }
+
+    @Override
+    protected boolean updateCustomBlockEntityTag(@Nonnull BlockPos p, @Nonnull Level l, @Nullable Player pl, @Nonnull ItemStack s, @Nonnull BlockState st) {
+        return true;
     }
 
     @Override

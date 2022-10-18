@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -35,14 +36,13 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
 
     @Override
     public void load(CompoundTag tag) {
+        super.load(tag);
         this.explosionWidth = tag.getInt("explosionWidth");
         this.explosionHeight = tag.getInt("explosionHeight");
         this.explosionDepth = tag.getInt("explosionDepth");
         calculateExplosions();
-
-        if (this.level != null && this.level.isClientSide()) {
-            ChargedExplosives.getInstance().proxy.addBlockToRender(cornerToCorner);
-        }
+        ChargedExplosives.getInstance().proxy.startPreviewExplosion(this.cornerToCorner);
+        this.setChanged();
     }
 
     @Override
@@ -52,18 +52,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
         tag.putInt("explosionHeight", explosionHeight);
         tag.putInt("explosionDepth", explosionDepth);
         super.saveToItem(stack);
-    }
-
-    public int getExplosionWidth() {
-        return explosionWidth;
-    }
-
-    public int getExplosionDepth() {
-        return explosionDepth;
-    }
-
-    public int getExplosionHeight() {
-        return explosionHeight;
     }
 
     public ArrayList<BlockPos> getExplosions() {
@@ -90,8 +78,8 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
                     endX = pos.getX() + (int) Math.ceil(explosionHeight / 2F);
                     startY = pos.getY() - explosionDepth;
                     endY = pos.getY();
-                    startZ = pos.getZ() - (int) Math.floor(explosionWidth / 2F) + 1;
-                    endZ = pos.getZ() + (int) Math.ceil(explosionWidth / 2F) + 1;
+                    startZ = pos.getZ() - (int) Math.floor(explosionWidth / 2F);
+                    endZ = pos.getZ() + (int) Math.ceil(explosionWidth / 2F);
                 } else {
                     startX = pos.getX() - (int) Math.floor(explosionWidth / 2F);
                     endX = pos.getX() + (int) Math.ceil(explosionWidth / 2F);
@@ -159,8 +147,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
             }
         }
 
-        this.cornerToCorner = new Tuple<>(new BlockPos(startX, startY, startZ), new BlockPos(endX, endY, endZ));
-
         for (int x = startX; x < endX; x++) {
             for (int z = startZ; z < endZ; z++) {
                 for (int y = startY; y < endY; y++) {
@@ -170,5 +156,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
         }
 
         this.explosionPositions = data;
+        this.cornerToCorner = new Tuple<>(new BlockPos(startX, startY, startZ), new BlockPos(endX, endY, endZ));
     }
 }

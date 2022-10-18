@@ -1,0 +1,23 @@
+package com.oitsjustjose.charged_explosives.client.network;
+
+import com.oitsjustjose.charged_explosives.client.ClientProxy;
+import com.oitsjustjose.charged_explosives.common.network.PreviewExplosionPacket;
+import net.minecraftforge.fml.LogicalSide;
+import net.minecraftforge.network.NetworkEvent;
+
+import java.util.function.Supplier;
+
+public class ClientPreviewExplosionPacket {
+    public static void handleClient(PreviewExplosionPacket pkt, Supplier<NetworkEvent.Context> ctx) {
+        if (ctx.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
+            ctx.get().enqueueWork(() -> {
+                if (pkt.action.equals(PreviewExplosionPacket.ACTION_ADD)) {
+                    ClientProxy.bdRenderer.addExplosion(pkt.corners);
+                } else if (pkt.action.equals(PreviewExplosionPacket.ACTION_REMOVE)) {
+                    ClientProxy.bdRenderer.removeExplosion(pkt.corners);
+                }
+            });
+            ctx.get().setPacketHandled(true);
+        }
+    }
+}

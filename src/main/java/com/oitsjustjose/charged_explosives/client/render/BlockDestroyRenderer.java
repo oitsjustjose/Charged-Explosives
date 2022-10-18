@@ -1,15 +1,14 @@
 package com.oitsjustjose.charged_explosives.client.render;
 
+import com.google.common.collect.Sets;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Matrix4f;
-import com.oitsjustjose.charged_explosives.common.blocks.ChargedExplosiveBlock;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.Tuple;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -18,13 +17,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class BlockDestroyRenderer {
-    protected Set<Tuple<BlockPos, BlockPos>> highlightedBlocks = new HashSet<>();
+    protected Set<Tuple<BlockPos, BlockPos>> highlightedBlocks = Sets.newConcurrentHashSet();
 
-    public void selectBlock(Tuple<BlockPos, BlockPos> corners) {
+    public void addExplosion(Tuple<BlockPos, BlockPos> corners) {
         this.highlightedBlocks.add(corners);
     }
 
-    public void unselectBlock(Tuple<BlockPos, BlockPos> corners) {
+    public void removeExplosion(Tuple<BlockPos, BlockPos> corners) {
         this.highlightedBlocks.removeIf(pair -> pair.getA().equals(corners.getA()) && pair.getB().equals(corners.getB()));
     }
 
@@ -41,7 +40,7 @@ public class BlockDestroyRenderer {
         Minecraft mc = Minecraft.getInstance();
 
         this.highlightedBlocks.stream().filter(x -> {
-            return x.getA().distToCenterSqr(mc.gameRenderer.getMainCamera().getPosition()) < 100D;
+            return x.getA().distToCenterSqr(mc.gameRenderer.getMainCamera().getPosition()) < 256D;
         }).forEach(pos -> {
             PoseStack stack = event.getPoseStack();
             MultiBufferSource.BufferSource buf = mc.renderBuffers().bufferSource();
