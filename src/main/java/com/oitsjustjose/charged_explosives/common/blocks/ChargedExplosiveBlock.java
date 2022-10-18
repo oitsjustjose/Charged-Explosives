@@ -14,6 +14,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -100,6 +102,9 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
         CompoundTag tag = stack.getOrCreateTag().copy();
         be.load(tag);
+        if (placer.getOffhandItem().getItem() == Items.REDSTONE_TORCH) {
+            this.explode(level, pos);
+        }
     }
 
     @Override
@@ -120,6 +125,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     @Override
+    // TODO: apply same logic if block is just *poof'd*
     public void playerWillDestroy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Player player) {
         if (player.isCreative()) {
             return;
@@ -133,6 +139,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             ent.setDefaultPickUpDelay();
             level.addFreshEntity(ent);
         }
+        // TODO (MAYBE): ability to store upcoming tasks for this tile entity and cancel them on break
     }
 
     @Override
@@ -141,25 +148,61 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             player.swing(hand);
             return InteractionResult.SUCCESS;
         }
+        explode(level, pos);
+        return InteractionResult.CONSUME;
+    }
+
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+        if (level.hasNeighborSignal(pos)) {
+            if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+                if (!cebe.hasBeenActivated()) {
+                    cebe.setActivated();
+                    explode(level, pos);
+                }
+            }
+        }
+    }
+
+    @Nullable
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext ctx) {
+        if (ctx.getLevel().hasNeighborSignal(ctx.getClickedPos())) {
+            this.explode(ctx.getLevel(), ctx.getClickedPos());
+        }
+        return super.getStateForPlacement(ctx);
+//        return (BlockState)this\.defaultBlockState().setValue(LIT, p_55659_.getLevel().hasNeighborSignal(p_55659_.getClickedPos()));
+    }
+
+    private void explode(Level level, BlockPos pos) {
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+            if (cebe.hasBeenActivated()) {
+                return;
+            } else {
+                cebe.setActivated();
+            }
+        }
 
         // TODO: configs
         final int DELAY_TIME_SECONDS = 5;
         final int NUM_WARNING_BEEPS = 5;
 
 
-        ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explode(level, pos), DELAY_TIME_SECONDS));
+        ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explodeTask(level, pos), DELAY_TIME_SECONDS));
         for (int i = 0; i < NUM_WARNING_BEEPS; i++) {
             ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(
-                    () -> level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F),
+                    () -> {
+                        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) { // check that it's still there
+                            level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepBoop.get(), SoundSource.BLOCKS, 0.5F, 1.0F);
+                        }
+                    },
                     (DELAY_TIME_SECONDS / NUM_WARNING_BEEPS) * i
             ));
         }
-
-        return InteractionResult.CONSUME;
     }
 
 
-    private void explode(Level level, BlockPos pos) {
+    private void explodeTask(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
             /* ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥ */
             AtomicInteger explodedCount = new AtomicInteger();
@@ -181,6 +224,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             });
 
 
+//            TODO: if explosion doesn't happen, make a new sound
             if (explodedCount.get() > 0) {
                 level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
                 ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
