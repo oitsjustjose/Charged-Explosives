@@ -10,6 +10,7 @@
   "charged_explosives.height_tooltip": "  §8Height: §8%s§r",
   "charged_explosives.needs_init": "Explosive Needs to be Configured",
   "charged_explosives.invalid_config": "Explosive Has Invalid Configuration",
-  "charge.beep.boops": "§cCharged Explosive Beeps Aggressively§r",
+  "charged_explosives.charge.beep.boops": "§cCharge Beeps§r",
+  "charged_explosives.charge.failure": "§cCharge Failure§r",
   "block.charged_explosives.charged_explosive": "Explosive Charge"
 }
