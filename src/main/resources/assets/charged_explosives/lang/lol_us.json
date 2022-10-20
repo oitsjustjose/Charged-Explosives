@@ -1,0 +1,17 @@
+{
+  "charged_explosives.explosion.configuration.title": "Configyew 'Splodie",
+  "charged_explosives.explosion.width.title": "'Splodie Wideness:",
+  "charged_explosives.explosion.height.title": "'Splodie Tolness:",
+  "charged_explosives.explosion.depth.title": "'Splodie Deepness:",
+  "charged_explosives.needs_init_tooltip": "§8Lost 'Splodie§r",
+  "charged_explosives.invalid_configuration_tooltip": "§8'Splodie Is Borkd§r",
+  "charged_explosives.width_tooltip": "  §8Wideness: §8%s§r",
+  "charged_explosives.depth_tooltip": "  §8Deepness: §8%s§r",
+  "charged_explosives.height_tooltip": "  §8Tolness: §8%s§r",
+  "charged_explosives.needs_init": "'Splodie Needs Diwections",
+  "charged_explosives.invalid_config": "'Splodie Is Borkd",
+  "charged_explosives.charge.beep.boops": "§c'Splodie Beeps Agwessively§r",
+  "charged_explosives.charge.failure": "§cNo talk, 'Splodie Angy§r",
+  "block.charged_explosives.charged_explosive": "'Splodie"
+}
+

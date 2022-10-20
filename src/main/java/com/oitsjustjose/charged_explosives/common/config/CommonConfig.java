@@ -42,7 +42,7 @@ public class CommonConfig {
                         "Values greater than 0 will hurt anything in a radius of the blast by an amount (calculated by the explosive's width, depth and height) times this value.")
                 .defineInRange("concussiveDamageScale", 0.1, 0.0, 1.0);
         CONCUSSIVE_DAMAGE_PADDING = COMMON_BUILDER.comment("The number of blocks outside of the blast radius that a blast can give concussive damage. Set to 0 to disable extra concussive damage range")
-                .defineInRange("extraConcussiveDamageRange", 5, 0, 64);
+                .defineInRange("extraConcussiveDamageRange", 2, 0, 64);
         MAX_EXPLOSION_WIDTH = COMMON_BUILDER.comment("The max explosion width a user can set in their explosive").defineInRange("maxExplosionWidth", 11, 1, 128);
         MAX_EXPLOSION_HEIGHT = COMMON_BUILDER.comment("The max explosion height a user can set in their explosive").defineInRange("maxExplosionHeight", 11, 1, 128);
         MAX_EXPLOSION_DEPTH = COMMON_BUILDER.comment("The max explosion depth a user can set in their explosive").defineInRange("maxExplosionDepth", 11, 1, 128);
