@@ -21,7 +21,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
     private int explosionWidth = 0;
     private int explosionHeight = 0;
     private int explosionDepth = 0;
-    private boolean goingOffNow = false;
     private ArrayList<BlockPos> explosionPositions;
     private final ArrayList<UUID> scheduledTasks;
     private Tuple<BlockPos, BlockPos> cornerToCorner;
@@ -167,14 +166,6 @@ public class ChargedExplosiveBlockEntity extends BlockEntity {
 
         this.explosionPositions = data;
         this.cornerToCorner = new Tuple<>(new BlockPos(startX, startY, startZ), new BlockPos(endX, endY, endZ));
-    }
-
-    public boolean hasBeenActivated() {
-        return this.goingOffNow;
-    }
-
-    public void setActivated() {
-        this.goingOffNow = true;
     }
 
     public void addScheduledTask(UUID uuid) {

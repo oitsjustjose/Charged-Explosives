@@ -27,6 +27,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.material.Material;
 import net.minecraft.world.level.material.MaterialColor;
@@ -53,9 +54,11 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     protected static final VoxelShape WEST_AABB = Block.box(13D, 4D, 2D, 16D, 12D, 14D);
     protected static final VoxelShape EAST_AABB = Block.box(0D, 4D, 2D, 3D, 12D, 14D);
 
+    public static final BooleanProperty ACTIVATED = BooleanProperty.create("activated");
+
     public ChargedExplosiveBlock() {
         super(BlockBehaviour.Properties.of(Material.EXPLOSIVE, MaterialColor.COLOR_GREEN).dynamicShape().noOcclusion().isValidSpawn((w, x, y, z) -> false).isRedstoneConductor((x, y, z) -> false).isSuffocating((x, y, z) -> false).isViewBlocking((x, y, z) -> false));
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FACE, AttachFace.WALL));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FACE, AttachFace.WALL).setValue(ACTIVATED, false));
     }
 
     @Override
@@ -93,7 +96,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> Builder) {
-        Builder.add(FACING, FACE);
+        Builder.add(FACING, FACE, ACTIVATED);
     }
 
     @Override
@@ -115,6 +118,11 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     @Override
     public void onRemove(@NotNull BlockState oldState, @NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState newState, boolean moving) {
+        // Updating state? keep it there.
+        if (oldState.getBlock() == newState.getBlock()) {
+            return;
+        }
+
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
             ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
             ItemStack stack = new ItemStack(ChargedExplosives.getInstance().REGISTRY.CeItem.get());
@@ -148,7 +156,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     public void neighborChanged(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
         if (level.hasNeighborSignal(pos)) {
             if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-                if (!cebe.hasBeenActivated()) {
+                if (!state.getValue(ACTIVATED)) {
                     this.explode(level, pos);
                 }
             }
@@ -157,10 +165,11 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     private void explode(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-            if (cebe.hasBeenActivated()) {
+            BlockState state = level.getBlockState(pos);
+            if (state.getValue(ACTIVATED)) {
                 return;
             } else {
-                cebe.setActivated();
+                level.setBlock(pos, state.setValue(ACTIVATED, true), 2 | 16);
             }
 
 
@@ -179,34 +188,49 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
     private void explodeTask(Level level, BlockPos pos) {
         if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-            /* ↥ WARNING: the below block will *destroy* cebe, so anything using should go here ↥ */
 
             level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
             ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
             level.removeBlockEntity(pos);
             level.removeBlock(pos, false);
 
-            AABB aabb = new AABB(cebe.getCorners().getA(), cebe.getCorners().getB()).inflate(5.0D);
-            float dmgAmt = cebe.calculateConcussiveDamage();
             cebe.getExplosions().forEach(p -> {
                 BlockState state = level.getBlockState(p);
                 if (!state.hasBlockEntity()) {
                     /* indestructible blocks will return -1.0F */
                     if (state.getBlock().defaultDestroyTime() >= 0.0 && !state.isAir()) {
-                        level.removeBlock(p, false);
-                        /* Ignore the yellow squiggles below - p_49886 is passed to a func where it's Nullable */
-                        if (CommonConfig.EXPLOSION_DROPS.get()) {
-                            Block.dropResources(state, level, p, null, null, ItemStack.EMPTY);
-                        }
-                        if (level.getRandom().nextBoolean()) {
-                            ChargedExplosives.getInstance().PROXY.spawnExplosionParticle(p);
+                        try {
+                            explodeBlock(level, p);
+                        } catch (ArrayIndexOutOfBoundsException ignored) { // it.unimi.dsi.fastutil crash prevention
+                            ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> explodeBlock(level, p), level.getRandom().nextInt(3) + 1));
                         }
                     }
                 }
             });
-            List<LivingEntity> entities = level.getEntities(EntityTypeTest.forClass(LivingEntity.class), aabb, Objects::nonNull);
 
+            AABB aabb = new AABB(cebe.getCorners().getA(), cebe.getCorners().getB()).inflate(CommonConfig.CONCUSSIVE_DAMAGE_PADDING.get());
+            for (int x = (int) aabb.minX; x < (int) aabb.maxX; x++) {
+                for (int y = (int) aabb.minY; y < (int) aabb.maxY; y++) {
+                    for (int z = (int) aabb.minZ; z < (int) aabb.maxZ; z++) {
+                        if (level.getRandom().nextInt(4) == 3) {
+                            ChargedExplosives.getInstance().PROXY.spawnExplosionParticle(new BlockPos(x, y, z));
+                        }
+                    }
+                }
+            }
+
+            float dmgAmt = cebe.calculateConcussiveDamage();
+            List<LivingEntity> entities = level.getEntities(EntityTypeTest.forClass(LivingEntity.class), aabb, Objects::nonNull);
             entities.forEach(x -> x.hurt(DamageSource.GENERIC, dmgAmt));
+        }
+    }
+
+    private void explodeBlock(Level level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        level.removeBlock(pos, false);
+        /* Ignore the yellow squiggles below - p_49886 is passed to a func where it's Nullable */
+        if (CommonConfig.EXPLOSION_DROPS.get()) {
+            Block.dropResources(state, level, pos, null, null, ItemStack.EMPTY);
         }
     }
 }
