@@ -5,6 +5,7 @@ import com.oitsjustjose.charged_explosives.common.network.PreviewExplosionPacket
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.network.NetworkEvent;
 
+import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
 public class ClientPreviewExplosionPacket {
@@ -12,9 +13,15 @@ public class ClientPreviewExplosionPacket {
         if (ctx.get().getDirection().getReceptionSide() == LogicalSide.CLIENT) {
             ctx.get().enqueueWork(() -> {
                 if (pkt.action.equals(PreviewExplosionPacket.ACTION_ADD)) {
-                    ClientProxy.bdRenderer.addExplosion(pkt.corners);
+                    try {
+                        ClientProxy.bdRenderer.addExplosion(pkt.corners);
+                    } catch (NoSuchElementException ignored) {
+                    }
                 } else if (pkt.action.equals(PreviewExplosionPacket.ACTION_REMOVE)) {
-                    ClientProxy.bdRenderer.removeExplosion(pkt.corners);
+                    try {
+                        ClientProxy.bdRenderer.removeExplosion(pkt.corners);
+                    } catch (NoSuchElementException ignored) {
+                    }
                 }
             });
             ctx.get().setPacketHandled(true);
