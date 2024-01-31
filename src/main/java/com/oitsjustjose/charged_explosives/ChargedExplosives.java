@@ -9,7 +9,6 @@ import com.oitsjustjose.charged_explosives.common.registry.Registry;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -38,6 +37,7 @@ public class ChargedExplosives {
         MinecraftForge.EVENT_BUS.register(this);
         MinecraftForge.EVENT_BUS.register(SCHEDULER);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::buildContents);
         this.configSetup();
     }
 
@@ -56,10 +56,9 @@ public class ChargedExplosives {
         ClientConfig.loadConfig(ClientConfig.CLIENT_CONFIG, FMLPaths.CONFIGDIR.get().resolve(MODID + "-client.toml"));
     }
 
-    @SubscribeEvent
-    public void buildContents(BuildCreativeModeTabContentsEvent event) {
+    private void buildContents(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
-            event.accept(REGISTRY.CeItem);
+            event.accept(ChargedExplosives.getInstance().REGISTRY.CeItem.get());
         }
     }
 }
