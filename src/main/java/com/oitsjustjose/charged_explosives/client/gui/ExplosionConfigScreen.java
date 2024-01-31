@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.oitsjustjose.charged_explosives.ChargedExplosives;
 import com.oitsjustjose.charged_explosives.common.Util;
 import com.oitsjustjose.charged_explosives.common.config.CommonConfig;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -13,11 +14,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.client.event.ScreenEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.function.Function;
 
 public class ExplosionConfigScreen extends Screen {
 
@@ -73,58 +72,70 @@ public class ExplosionConfigScreen extends Screen {
         int rowWidth =/* Width of actual els */ INCR_W + DECR_W + EDIT_BOX_WIDTH + (LW_MOD - EDIT_BOX_WIDTH) /* Offset for the left btn */ + (LW_MOD - EDIT_BOX_WIDTH - EB_MOD) /* Offset for the right btn */;
 
         /* Width Adj */
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 40, DECR_W, 20, DECR, onPress -> {
+        var widthDecrButton = new Button.Builder(DECR, onPress -> {
             if (this.explosionWidth > 1) {
                 this.explosionWidth--;
                 this.dirty = true;
-                this.widthBox.setValue("" + this.explosionWidth);
+                this.widthBox.setValue(String.valueOf(this.explosionWidth));
             }
-        }));
-        this.widthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 40, EDIT_BOX_WIDTH, 20, Component.literal("")));
-        this.widthBox.setValue("" + this.explosionWidth);
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 40, INCR_W, 20, INCR, onPress -> {
+        }).pos(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 40).size(DECR_W, 20).build();
+
+        var widthIncrButton = new Button.Builder(INCR, onPress -> {
             if (this.explosionWidth < CommonConfig.MAX_EXPLOSION_WIDTH.get()) {
                 this.explosionWidth++;
                 this.dirty = true;
-                this.widthBox.setValue("" + this.explosionWidth);
+                this.widthBox.setValue(String.valueOf(this.explosionWidth));
             }
-        }));
+        }).pos(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 40).size(INCR_W, 20).build();
+
+        this.addRenderableWidget(widthDecrButton);
+        this.widthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 40, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.widthBox.setValue(String.valueOf(this.explosionWidth));
+        this.addRenderableWidget(widthIncrButton);
 
         /* Depth Adj */
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 85, DECR_W, 20, DECR, onPress -> {
+        var depthDecrButton = new Button.Builder(DECR, onPress -> {
             if (this.explosionDepth > 1) {
                 this.explosionDepth--;
                 this.dirty = true;
-                this.depthBox.setValue("" + this.explosionDepth);
+                this.depthBox.setValue(String.valueOf(this.explosionDepth));
             }
-        }));
-        this.depthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 85, EDIT_BOX_WIDTH, 20, Component.literal("")));
-        this.depthBox.setValue("" + this.explosionDepth);
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 85, INCR_W, 20, INCR, onPress -> {
+        }).pos(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 85).size(DECR_W, 20).build();
+
+        var depthIncrButton = new Button.Builder(INCR, onPress -> {
             if (this.explosionDepth < CommonConfig.MAX_EXPLOSION_DEPTH.get()) {
                 this.explosionDepth++;
                 this.dirty = true;
-                this.depthBox.setValue("" + this.explosionDepth);
+                this.depthBox.setValue(String.valueOf(this.explosionDepth));
             }
-        }));
+        }).pos(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 85).size(INCR_W, 20).build();
+
+        this.addRenderableWidget(depthDecrButton);
+        this.depthBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 85, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.depthBox.setValue(String.valueOf(this.explosionDepth));
+        this.addRenderableWidget(depthIncrButton);
 
         /* Height Adj */
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 130, DECR_W, 20, DECR, onPress -> {
+        var heightDecrButton = new Button.Builder(DECR, onPress -> {
             if (this.explosionHeight > 1) {
                 this.explosionHeight--;
                 this.dirty = true;
-                this.heightBox.setValue("" + this.explosionHeight);
+                this.heightBox.setValue(String.valueOf(this.explosionHeight));
             }
-        }));
-        this.heightBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 130, EDIT_BOX_WIDTH, 20, Component.literal("")));
-        this.heightBox.setValue("" + this.explosionHeight);
-        this.addRenderableWidget(new Button(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 130, INCR_W, 20, INCR, onPress -> {
+        }).pos(BG_X + ((rowWidth / 2) - 1) + FW_MOD, BG_Y + 130).size(DECR_W, 20).build();
+
+        var heightIncrButton = new Button.Builder(INCR, onPress -> {
             if (this.explosionHeight < CommonConfig.MAX_EXPLOSION_HEIGHT.get()) {
                 this.explosionHeight++;
                 this.dirty = true;
-                this.heightBox.setValue("" + this.explosionHeight);
+                this.heightBox.setValue(String.valueOf(this.explosionHeight));
             }
-        }));
+        }).pos(BG_X + ((rowWidth / 2) - 1) + LW_MOD, BG_Y + 130).size(INCR_W, 20).build();
+
+        this.addRenderableWidget(heightDecrButton);
+        this.heightBox = this.addRenderableWidget(new EditBox(this.font, BG_X + ((rowWidth / 2) - 1) + EB_MOD, BG_Y + 130, EDIT_BOX_WIDTH, 20, Component.literal("")));
+        this.heightBox.setValue(String.valueOf(this.explosionHeight));
+        this.addRenderableWidget(heightIncrButton);
     }
 
     @Override
@@ -194,12 +205,7 @@ public class ExplosionConfigScreen extends Screen {
     }
 
     @Override
-    public boolean shouldCloseOnEsc() {
-        return true;
-    }
-
-    @Override
-    public void render(@NotNull PoseStack stack, int mouseX, int mouseY, float partialTicks) {
+    public void render(@NotNull GuiGraphics stack, int mouseX, int mouseY, float partialTicks) {
         final int BG_X = (this.width - TEXTURE_WIDTH) / 2;
         final int BG_Y = (this.height - TEXTURE_HEIGHT) / 2;
 
@@ -207,17 +213,16 @@ public class ExplosionConfigScreen extends Screen {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, BACKGROUND_TEXTURE);
-        this.blit(stack, (this.width - TEXTURE_WIDTH) / 2, (this.height - TEXTURE_HEIGHT) / 2, 0, 0, TEXTURE_WIDTH, TEXTURE_WIDTH);
 
-
-        this.font.draw(stack, this.title, BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.title) / 2), BG_Y + PADDING, 4210752);
-
+        stack.blit(BACKGROUND_TEXTURE, (this.width - TEXTURE_WIDTH) / 2, (this.height - TEXTURE_HEIGHT) / 2, 0, 0, TEXTURE_WIDTH, TEXTURE_WIDTH);
+        /* GUI Title */
+        stack.drawString(this.font, this.title, (int)(BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.title) / 2)), BG_Y + PADDING, 4210752, false   );
         /* Width Title */
-        this.font.draw(stack, this.widthTitle, BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2), BG_Y + 20 + this.font.lineHeight, 7089453);
+        stack.drawString(this.font, this.widthTitle, (int)(BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2)), BG_Y + 20 + this.font.lineHeight, 7089453, false);
         /* Depth Title */
-        this.font.draw(stack, this.depthTitle, BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2), BG_Y + 65 + this.font.lineHeight, 7089453);
+        stack.drawString(this.font, this.depthTitle, (int)(BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2)), BG_Y + 65 + this.font.lineHeight, 7089453, false);
         /* Height Title */
-        this.font.draw(stack, this.heightTitle, BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2), BG_Y + 110 + this.font.lineHeight, 7089453);
+        stack.drawString(this.font, this.heightTitle, (int)(BG_X + (float) (TEXTURE_WIDTH / 2) - (float) (this.font.width(this.widthTitle) / 2)), BG_Y + 110 + this.font.lineHeight, 7089453, false);
 
         super.render(stack, mouseX, mouseY, partialTicks);
     }
@@ -225,10 +230,5 @@ public class ExplosionConfigScreen extends Screen {
     @Override
     public boolean isPauseScreen() {
         return false;
-    }
-
-    @Override
-    public void renderBackground(@NotNull PoseStack stack, int _unused) {
-        this.fillGradient(stack, 0, 0, this.width, this.height, -1072689136, -804253680);
     }
 }

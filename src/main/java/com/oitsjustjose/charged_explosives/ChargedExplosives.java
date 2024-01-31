@@ -6,8 +6,9 @@ import com.oitsjustjose.charged_explosives.common.CommonProxy;
 import com.oitsjustjose.charged_explosives.common.TickScheduler;
 import com.oitsjustjose.charged_explosives.common.config.CommonConfig;
 import com.oitsjustjose.charged_explosives.common.registry.Registry;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
@@ -56,7 +57,9 @@ public class ChargedExplosives {
     }
 
     @SubscribeEvent
-    public void onSlashReload(AddReloadListenerEvent evt) {
+    public void buildContents(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.REDSTONE_BLOCKS) {
+            event.accept(REGISTRY.CeItem);
+        }
     }
-
 }

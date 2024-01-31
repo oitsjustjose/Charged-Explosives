@@ -9,7 +9,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 public class Util {
     public static Component translateOrFallback(String transKey) {
         try {
-            return new TranslatableContents(transKey).resolve(null, null, 0);
+            return new TranslatableContents(transKey, null, new Object[]{}).resolve(null, null, 0);
         } catch (CommandSyntaxException e) {
             MutableComponent m = MutableComponent.create(ComponentContents.EMPTY);
             m.append("Failed to resolve key ");

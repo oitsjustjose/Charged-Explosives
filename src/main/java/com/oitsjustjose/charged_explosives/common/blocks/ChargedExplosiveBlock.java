@@ -11,7 +11,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -23,14 +22,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.FaceAttachedHorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.AttachFace;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.entity.EntityTypeTest;
-import net.minecraft.world.level.material.Material;
-import net.minecraft.world.level.material.MaterialColor;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -57,7 +54,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     public static final BooleanProperty ACTIVATED = BooleanProperty.create("activated");
 
     public ChargedExplosiveBlock() {
-        super(BlockBehaviour.Properties.of(Material.EXPLOSIVE, MaterialColor.COLOR_GREEN).dynamicShape().noOcclusion().isValidSpawn((w, x, y, z) -> false).isRedstoneConductor((x, y, z) -> false).isSuffocating((x, y, z) -> false).isViewBlocking((x, y, z) -> false));
+        super(Properties.of().mapColor(MapColor.COLOR_GREEN).dynamicShape().noOcclusion().isValidSpawn((w, x, y, z) -> false).isRedstoneConductor((x, y, z) -> false).isSuffocating((x, y, z) -> false).isViewBlocking((x, y, z) -> false));
         this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(FACE, AttachFace.WALL).setValue(ACTIVATED, false));
     }
 
@@ -123,13 +120,13 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             return;
         }
 
-        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
-            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity ent) {
+            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(ent.getCorners());
             ItemStack stack = new ItemStack(ChargedExplosives.getInstance().REGISTRY.CeItem.get());
-            cebe.saveToItem(stack);
-            ItemEntity ent = new ItemEntity(level, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, stack);
-            ent.setDefaultPickUpDelay();
-            level.addFreshEntity(ent);
+            ent.saveToItem(stack);
+            ItemEntity itemEntity = new ItemEntity(level, (double) pos.getX() + 0.5D, (double) pos.getY() + 0.5D, (double) pos.getZ() + 0.5D, stack);
+            itemEntity.setDefaultPickUpDelay();
+            level.addFreshEntity(itemEntity);
         }
 
         level.removeBlockEntity(pos);
@@ -155,7 +152,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     @Override
     public void neighborChanged(@NotNull BlockState state, Level level, @NotNull BlockPos pos, @NotNull Block block, @NotNull BlockPos fromPos, boolean isMoving) {
         if (level.hasNeighborSignal(pos)) {
-            if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+            if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) {
                 if (!state.getValue(ACTIVATED)) {
                     this.explode(level, pos);
                 }
@@ -164,7 +161,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
     }
 
     private void explode(Level level, BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity ent) {
             BlockState state = level.getBlockState(pos);
             if (state.getValue(ACTIVATED)) {
                 return;
@@ -173,9 +170,9 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
             }
 
 
-            cebe.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explodeTask(level, pos), CommonConfig.EXPLOSION_COUNTDOWN_TIME.get())));
+            ent.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> this.explodeTask(level, pos), CommonConfig.EXPLOSION_COUNTDOWN_TIME.get())));
             for (int i = 0; i < CommonConfig.NUM_BEEPS.get(); i++) {
-                cebe.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> {
+                ent.addScheduledTask(ChargedExplosives.getInstance().SCHEDULER.addTask(new TickScheduler.ScheduledTask(() -> {
                     if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity) { // check that it's still there
                         level.playSound(null, pos, ChargedExplosives.getInstance().REGISTRY.BeepSound.get(), SoundSource.BLOCKS, 0.75F, 1.0F);
                     }
@@ -187,14 +184,14 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
 
 
     private void explodeTask(Level level, BlockPos pos) {
-        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity cebe) {
+        if (level.getBlockEntity(pos) instanceof ChargedExplosiveBlockEntity ent) {
 
             level.playSound(null, pos, SoundEvents.GENERIC_EXPLODE, SoundSource.BLOCKS, 1.0F, 1.0F);
-            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(cebe.getCorners());
+            ChargedExplosives.getInstance().PROXY.endPreviewExplosion(ent.getCorners());
             level.removeBlockEntity(pos);
             level.removeBlock(pos, false);
 
-            cebe.getExplosions().forEach(p -> {
+            ent.getExplosions().forEach(p -> {
                 BlockState state = level.getBlockState(p);
                 if (!state.hasBlockEntity()) {
                     /* indestructible blocks will return -1.0F */
@@ -208,7 +205,7 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
                 }
             });
 
-            AABB aabb = new AABB(cebe.getCorners().getA(), cebe.getCorners().getB()).inflate(CommonConfig.CONCUSSIVE_DAMAGE_PADDING.get());
+            AABB aabb = new AABB(ent.getCorners().getA(), ent.getCorners().getB()).inflate(CommonConfig.CONCUSSIVE_DAMAGE_PADDING.get());
             for (int x = (int) aabb.minX; x < (int) aabb.maxX; x++) {
                 for (int y = (int) aabb.minY; y < (int) aabb.maxY; y++) {
                     for (int z = (int) aabb.minZ; z < (int) aabb.maxZ; z++) {
@@ -219,9 +216,9 @@ public class ChargedExplosiveBlock extends FaceAttachedHorizontalDirectionalBloc
                 }
             }
 
-            float dmgAmt = cebe.calculateConcussiveDamage();
+            float dmgAmt = ent.calculateConcussiveDamage();
             List<LivingEntity> entities = level.getEntities(EntityTypeTest.forClass(LivingEntity.class), aabb, Objects::nonNull);
-            entities.forEach(x -> x.hurt(DamageSource.GENERIC, dmgAmt));
+            entities.forEach(x -> x.hurt(level.damageSources().generic(), dmgAmt));
         }
     }
 
